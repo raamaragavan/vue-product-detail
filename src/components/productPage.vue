@@ -7,14 +7,21 @@
                     <div class="carousel"  @mouseleave="imageZoomOut">
   <div class="slides" @touchstart="touchStartMethod"
   @touchend="touchEndMethod">
-    <div class="slide" @click="openDetailPopup()" v-for="(productDetail, index) in productDetails" :key="index">
-  <img @mouseenter="imageZoom" v-bind:src="'./../assets/products/' + productDetail.image">
+    <div class="slide" @click="openDetailPopup(productDetail)" v-for="(productDetail, index) in productDetails" :key="index">
+  <img v-if="productDetail.type === 'IMAGES'" @mouseenter="imageZoom" v-bind:src="'./../assets/products/' + productDetail.src">
+  <div class="video-section" v-if="productDetail.type === 'VIDEOS'">
+    <img  v-bind:src="'./../assets/products/' + productDetail.thumbnail">
+    <a class="button button-play " href="javascript:void(0);"></a>
+  </div>
     </div>
   </div>
   <div class="home-thumbnails-section">
   <div class="home-thumbnails" :class="{ 'home-thumbnails-active':productDetail.isActive }" @click="goToSlide(index)" v-for="(productDetail, index) in productDetails" data-index='{{index+1}}' :key="index">
-  <img v-bind:src="'./../assets/products/' + productDetail.image">
-    </div>
+  <img v-if="productDetail.type === 'IMAGES'" v-bind:src="'./../assets/products/' + productDetail.src">
+  <div class="thumbnail-video-section" v-if="productDetail.type === 'VIDEOS'">
+    <a class="button thumbnail-button-play" href="javascript:void(0);"></a>
+  </div>    
+</div>
   </div>
   
   <div class="controls" id="slider-controls">
@@ -29,7 +36,12 @@
   </div>
 </div>
 <div class='slider-interface'>
-    <button class='slider-dot' :class="{ 'active':productDetail.isActive }" @click="goToSlide(index)" v-for="(productDetail, index) in productDetails" :key="index" data-index='{{index+1}}'></button>
+    <div v-for="(productDetail, index) in productDetails" :key="index">
+        <button class='slider-dot' v-if="productDetail.type === 'IMAGES'" :class="{ 'active':productDetail.isActive }" @click="goToSlide(index)"   data-index='{{index+1}}'></button>
+    <button class='dots-button-play' v-if="productDetail.type !== 'IMAGES'" :class="{ 'active':productDetail.isActive }" @click="goToSlide(index)" data-index='{{index+1}}'></button>
+    </div>
+   
+    
   </div>
                 </div>
                 <div class="w-full px-4 md:w-2/3 text-left relative">
@@ -113,10 +125,13 @@
   <div class="popover-slides" @touchstart="popoverImgTouchStartMethod"
   @touchend="popoverImgTouchEndMethod">
     <div class="popover-slide"  v-for="(popoverProductDetail, index) in popoverProductDetails" :key="index">
-        <input type="checkbox" v-bind:id="'zoomCheck'+index">
-  <label v-bind:for="'zoomCheck'+index">
-    <img  v-bind:src="'./../assets/products/' + popoverProductDetail.image">
+        <input class="show-only-big-device" type="checkbox" v-bind:id="'zoomCheck'+index">
+  <label class="show-only-big-device" v-bind:for="'zoomCheck'+index">
+    <img v-bind:src="'./../assets/products/' + popoverProductDetail.src">
   </label>
+  <div class="show-small-device mobile-image-zoom" @dblclick="doubleTab" v-bind:style='{ backgroundImage: "url(./../assets/products/" + popoverProductDetail.src +")", }'>
+
+  </div>
     </div>
   </div>
                     </div>
@@ -130,20 +145,44 @@
                                 <div class="mb-4"><div class="popover-img-desc">Colour:Grey Shimmer</div><div  class="popover-img-desc">Size:12GB RAM, 256GB Storage</div></div>
                 </div>
                 <div class="product-thumb-nails" :class="{ 'thumbnails-active':productDetail.isActive }" @click="goToPopoverSlide(thumbnailIndex)" v-for="(productDetail, thumbnailIndex) in popoverProductDetails" data-index='{{thumbnailIndex}}' :key="thumbnailIndex">
-  <img v-bind:src="'./../assets/products/' + productDetail.image">
+  <img v-if="productDetail.type === 'IMAGES'" v-bind:src="'./../assets/products/' + productDetail.src">
     </div>
             
             </div>
                 </div>
                 <div class="flex flex-wrap height-full" :class="{ hidden:tabName !== 'VIDEOS' }">
-                    <div class="center-flex">
+                    <div class="w-full px-4 md:w-2/3 text-left relative height-full">
+                    <div class="center-flex" v-if="!popoverProductDetail">
                         No Videos Found
                     </div>
+                    <div class="center-flex" v-if="popoverProductDetail">
+                        <video controls width="500" height="400" autoplay>
+  <source v-bind:src="'./../assets/products/' + popoverProductDetail.src"  type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+                    </div>
+                    </div>
+                    <div class="w-full px-4 md:w-1/3 text-left height-full border-grey hidden md:block ">
+                        <div class="mb-8">
+                                <div class="popover-img-title mb-4" title="OnePlus Nord CE 3 5G (Grey Shimmer, 12GB RAM, 256GB Storage)" style="">OnePlus Nord CE 3 5G</div>
+                                <div class="mb-4"><div class="popover-img-desc">Colour:Grey Shimmer</div><div  class="popover-img-desc">Size:12GB RAM, 256GB Storage</div></div>
+                </div>
+                        <div class="mb-8">
+                    <div class="product-thumb-nails" :class="{ 'thumbnails-active':productDetail.isActive }" @click="selectVideo(productDetail)" v-for="(productDetail, thumbnailIndex) in popoverProductDetails" data-index='{{thumbnailIndex}}' :key="thumbnailIndex">
+                        <div class="thumbnail-video-section" v-if="productDetail.type === 'VIDEOS'">
+    <a class="button thumbnail-button-play" href="javascript:void(0);"></a>
+  </div>  
+    </div>
+</div>
+          </div>
                     </div>
           </div>
           <div class="popover-thumbnail-section show-small-device">
 <div class="popover-mobile-thumbnails" :class="{ 'thumbnails-active':productDetail.isActive }" @click="goToPopoverSlide(thumbnailIndex)" v-for="(productDetail, thumbnailIndex) in popoverProductDetails" data-index='{{thumbnailIndex}}' :key="thumbnailIndex">
-  <img v-bind:src="'./../assets/products/' + productDetail.image">
+  <img v-if="productDetail.type === 'IMAGES'" v-bind:src="'./../assets/products/' + productDetail.src">
+  <div class="thumbnail-video-section" v-if="productDetail.type === 'VIDEOS'">
+    <a class="button thumbnail-button-play" href="javascript:void(0);"></a>
+  </div>  
     </div>
 </div>
         </div>
@@ -154,35 +193,58 @@
 export default {
     data() {
         return {
+            dist1: 0,
+            dist2: 0,
             detailPopup: false,
+            doubleTapEnabled: false,
             quantity: 1,
             tabName: 'IMAGES',
-            tabList: [{name:'VIDEOS',isActive: false},{name:'IMAGES',isActive: true}],
+            tabList: [{ name: 'VIDEOS', isActive: false }, { name: 'IMAGES', isActive: true }],
             productDetails: [{
-                'image': 'product-zoom-1.jpg',
-                "type":"IMAGES",
+                'src': 'product-zoom-1.jpg',
+                "type": "IMAGES",
+                "thumbnail": 'product-zoom-1.jpg',
                 'name': '',
                 'isActive': true
             }, {
-                'image': 'product-zoom-2.jpg',
-                "type":"IMAGES",
+                'src': 'product-zoom-2.jpg',
+                "type": "IMAGES",
+                "thumbnail": 'product-zoom-2.jpg',
                 'name': '',
                 'isActive': false
             }, {
-                'image': 'product-zoom-3.jpg',
-                "type":"IMAGES",
+                'src': 'product-video-1.mp4',
+                "type": "VIDEOS",
+                "thumbnail": 'product-video-1.jpg',
+                'name': '',
+                'isActive': false
+            },
+            {
+                'src': 'product-zoom-3.jpg',
+                "type": "IMAGES",
+                "thumbnail": 'product-zoom-3.jpg',
                 'name': '',
                 'isActive': false
             }, {
-                'image': 'product-zoom-4.jpg',
+                'src': 'product-video-2.mp4',
+                "type": "VIDEOS",
+                "thumbnail": 'product-video-2.jpg',
                 'name': '',
-                "type":"IMAGES",
                 'isActive': false
             }, {
-                'image': 'product-zoom-5.jpg',
-                "type":"IMAGES",
-                'name': ''
+                'src': 'product-zoom-4.jpg',
+                'name': '',
+                "type": "IMAGES",
+                "thumbnail": 'product-zoom-4.jpg',
+                'isActive': false
+            }, {
+                'src': 'product-zoom-5.jpg',
+                "type": "IMAGES",
+                "thumbnail": 'product-zoom-5.jpg',
+                'name': '',
+                'isActive': false
             }],
+            videoTab: false,
             popoverProductDetails: [],
             popoverProductDetail: null,
             current: 0,
@@ -200,22 +262,58 @@ export default {
     },
 
     mounted() {
-        this.slides = document.querySelector(".slides");
-        this.slidesCount = this.slides.childElementCount;
-        this.maxLeft = (this.slidesCount - 1) * 100 * -1;
-        this.popoverProductDetails = JSON.parse(JSON.stringify(this.productDetails));
-    },
+        if (window.innerWidth < 800) {
+            const productDetails = this.productDetails.filter(productDetail => productDetail.type !== 'VIDEOS')
+            this.productDetails = productDetails
+        }
+        setTimeout(() => {
+            this.slides = document.querySelector(".slides");
+            this.slidesCount = this.slides.childElementCount;
+            this.maxLeft = (this.slidesCount - 1) * 100 * -1;
+            this.popoverProductDetails = JSON.parse(JSON.stringify(this.productDetails));
+        }, 350);
 
+    },
     methods: {
-        goToTab(tabName){
+        start(ev) {
+            if (ev.targetTouches.length == 2) {//check if two fingers touched screen
+                this.dist1 = Math.hypot( //get rough estimate of distance between two fingers
+                    ev.touches[0].pageX - ev.touches[1].pageX,
+                    ev.touches[0].pageY - ev.touches[1].pageY);
+            }
+        },
+        move(ev) {
+            if (ev.targetTouches.length == 2 && ev.changedTouches.length == 2) {
+                // Check if the two target touches are the same ones that started
+                this.dist2 = Math.hypot(//get rough estimate of new distance between fingers
+                    ev.touches[0].pageX - ev.touches[1].pageX,
+                    ev.touches[0].pageY - ev.touches[1].pageY);
+                //alert(dist);
+                if (this.dist1 > this.dist2) {//if fingers are closer now than when they first touched screen, they are pinching
+                    alert('zoom out');
+                }
+                if (this.dist1 < this.dist2) {//if fingers are further apart than when they first touched the screen, they are making the zoomin gesture
+                    alert('zoom in');
+                }
+            }
+        },
+        goToTab(tabName) {
+            this.popoverProductDetail = null;
             this.tabName = tabName;
             this.tabList.forEach((item) => {
-                if(item.name === tabName){
+                if (item.name === tabName) {
                     item.isActive = true;
-                } else{
+                } else {
                     item.isActive = false;
                 }
             })
+            const popoverProductDetails = JSON.parse(JSON.stringify(this.productDetails));
+            const tabProductDetails = popoverProductDetails.filter((productDetail) => productDetail.type === tabName);
+            this.popoverProductDetails = tabProductDetails;
+            if (tabName === 'VIDEOS') {
+                this.popoverProductDetail = this.popoverProductDetails[0];
+            }
+            this.selectActiveVideoThumbnail(this.popoverProductDetails[0], false);
         },
         touchStartMethod(touchEvent) {
             if (touchEvent.changedTouches.length !== 1) { // We only care if one finger is used
@@ -259,16 +357,55 @@ export default {
             document.getElementById('slider-controls').classList.remove('hide-controls');
             document.querySelector('body').classList.remove('hidden-overflow');
         },
-        openDetailPopup() {
+        openDetailPopup(selectedProductDetail) {
+            this.popoverProductDetail = null;
+            this.popoverProductDetails = JSON.parse(JSON.stringify(this.productDetails));
             this.detailPopup = true;
             document.getElementById('slider-controls').classList.add('hide-controls')
             document.querySelector('body').classList.add('hidden-overflow');
             setTimeout(() => {
-                this.initPopoverSlides();
+                this.initPopoverSlides(selectedProductDetail);
+                this.tabName = selectedProductDetail.type;
+                this.tabList.forEach((item) => {
+                    if (item.name === selectedProductDetail.type) {
+                        item.isActive = true;
+                    } else {
+                        item.isActive = false;
+                    }
+                })
+                if (selectedProductDetail.type === 'VIDEOS') {
+                    this.popoverProductDetail = this.popoverProductDetails.find((popoverProductDetail) => popoverProductDetail.src === selectedProductDetail.src)
+                }
+                const openPopup = true;
+                this.selectActiveVideoThumbnail(selectedProductDetail, openPopup);
+                
             }, 250);
-            
+
         },
-        initPopoverSlides() {
+        selectActiveVideoThumbnail(selectedProductDetail, openPopup) {
+            this.popoverProductDetails.forEach((item, index) => {
+                if (item.src === selectedProductDetail.src) {
+                    item.isActive = true;
+                    if (openPopup) {
+                        this.goToPopoverSlide(index);
+                    }
+                } else {
+                    item.isActive = false;
+                }
+            })
+        },
+        selectVideo(selectedProductDetail) {
+            this.popoverProductDetail = null;
+            setTimeout(() => {
+                this.popoverProductDetail = selectedProductDetail
+                this.selectActiveVideoThumbnail(selectedProductDetail, false);
+                console.log(this.popoverProductDetail);
+            }, 500);
+
+        },
+        initPopoverSlides(selectedProductDetail) {
+            const popoverProductDetails = this.popoverProductDetails.filter((productDetail) => productDetail.type === selectedProductDetail.type);
+            this.popoverProductDetails = popoverProductDetails
             this.popoverSlides = document.querySelector(".popover-slides");
             this.popoverSlidesCount = this.popoverSlides.childElementCount;
             this.popoverMaxLeft = (this.popoverSlidesCount - 1) * 100 * -1;
@@ -390,10 +527,32 @@ export default {
                 /* Calculate the cursor's x and y coordinates, relative to the image: */
                 x = e.pageX - a.left;
                 y = e.pageY - a.top;
-
+    y = y - window.scrollY;
                 return { x: x, y: y };
             }
         },
+        doubleTab(event){
+            var img;
+            img = event.target;
+            if(!this.doubleTapEnabled) {
+                this.doubleTapEnabled = true
+                console.log('event',event);
+         
+            
+            // img.style.transform = "scale("+300 / event.pageX + ")";
+            console.log('img',img);
+            const zoomedX = 300 - (event.pageX * 2.5);
+            const zoomedY = 400 - (event.pageY * 1.5);
+            img.style.backgroundSize = "200% 200%";
+            img.style.backgroundPosition = `${zoomedX}px ${zoomedY}px`;
+            } else{
+                this.doubleTapEnabled = false;
+                img.style.backgroundSize = "contain";
+            img.style.backgroundPosition = `center`;
+            }
+            
+        },
+
 
         imageZoomOut() {
             document.getElementById('result').style.display = 'none';
@@ -415,9 +574,20 @@ export default {
         },
         previousPopoverSlide() {
             this.changePopoverSlide(false);
+            this.resetDoubleTab();
         },
+        zoom(e){
+            let x, y, offsetX,offsetY;
+  var zoomer = e.currentTarget;
+  e.offsetX ? offsetX = e.offsetX : offsetX = e.touches[0].pageX
+  e.offsetY ? offsetY = e.offsetY : offsetX = e.touches[0].pageX
+  x = offsetX/zoomer.offsetWidth*100
+  y = offsetY/zoomer.offsetHeight*100
+  zoomer.style.backgroundPosition = x + '% ' + y + '%';
+},
         nextPopoverSlide() {
             this.changePopoverSlide();
+            this.resetDoubleTab();
         },
         goToPopoverSlide(index) {
             this.popoverCurrent = (index) * 100 * -1;
@@ -429,7 +599,19 @@ export default {
                     item.isActive = false;
                 }
             })
+            this.resetDoubleTab();
+            
         },
+        resetDoubleTab(){
+            const zoomLens = document.querySelectorAll('.mobile-image-zoom');
+            this.doubleTapEnabled = false;
+            if (zoomLens && zoomLens.length) {
+                zoomLens.forEach((zoomNode) => {
+                    zoomNode.style.backgroundSize = "contain";
+                    zoomNode.style.backgroundPosition = `center`;
+                })
+            }
+        }
     },
     computed: {}
 }
@@ -728,6 +910,12 @@ input[type=checkbox]:checked~label>img {
     transition: width 0.5s;
 }
 
+.dots-button-play {
+    margin-left: 5px;
+    margin-right: 5px;
+    background-color: transparent !important;
+}
+
 .active {
     background-color: red;
 }
@@ -739,6 +927,63 @@ input[type=checkbox]:checked~label>img {
     width: 75px;
     height: 75px;
     background-color: rgba(0, 0, 0, 0.25);
+}
+
+input[type=checkbox]:checked ~ label > img {
+  transform: scale(2);
+  cursor: zoom-out;
+}
+
+.thumbnail-video-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    height: 100%;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.thumbnail-button-play:before {
+    display: block;
+    position: absolute;
+    content: "";
+    bottom: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-width: 10px 0px 10px 20px;
+    border-radius: 0;
+    border-left-color: white;
+    transform: translate(-9px, 50%);
+}
+
+.dots-button-play:before {
+    display: block;
+    content: "";
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-width: 4.5px 0px 4.5px 9px;
+    border-radius: 0;
+    border-left-color: #ccc;
+    transform: translate(0, 0);
+}
+
+.dots-button-play.active:before {
+    border-left-color: red;
+}
+
+.video-section {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
 }
 
 .relative {
@@ -794,13 +1039,13 @@ input[type=checkbox]:checked~label>img {
     transition: 1s ease-in-out all;
 }
 
-.center-flex{
+.center-flex {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     min-height: 300px;
-    
+
 }
 
 .slide {
@@ -869,7 +1114,73 @@ figure.zoom img {
     display: none;
 }
 
+
+
+.mobile-image-zoom{
+    width: 300px;
+    height: 400px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-transition: all 300ms ease-in infinite;
+  -moz-transition: all 300ms ease-in infinite;
+  -o-transition: all 300ms ease-in infinite;
+  transition: all 300ms ease-in infinite;
+}
+
+.show-only-big-device{
+    display:block;
+}
+
+
+.circle {
+    display: block;
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 120px;
+    height: 120px;
+    stroke-dasharray: 1000px;
+    stroke-dashoffset: 0;
+    transform-origin: 50% 50%;
+    transition: all .8s linear .2s, opacity 0s linear 0s;
+
+}
+
+.button-play {
+    display: block;
+    cursor: pointer;
+    border: 0px solid white;
+    box-shadow: 0 4px 6px -3px rgba(black, .3), inset 0 3px 4px -2px rgba(black, .25);
+    width: 112px;
+    height: 112px;
+    background: grey;
+    background-image: linear-gradient(120deg, rgba(lighten(grey, 15%), .3) 50%, grey 51%);
+    border-radius: 50%;
+    transition: all .2s cubic-bezier(0.68, -0.55, 0.465, 1.55) .2s, border-width .4s cubic-bezier(0.68, -0.55, 0.465, 1.55);
+}
+
+.button-play:before {
+    display: block;
+    position: absolute;
+    content: "";
+    bottom: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 30px solid transparent;
+    border-width: 25px 0px 25px 40px;
+    border-radius: 0;
+    border-left-color: white;
+    transform: translate(-13px, 50%);
+}
+
+
+
 @media only screen and (max-width: 700px) {
+    .show-only-big-device{
+        display: none;
+    }
     .show-small-device {
         display: block;
     }
